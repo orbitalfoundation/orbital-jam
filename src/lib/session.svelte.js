@@ -30,9 +30,10 @@ function persist() {
   localStorage.setItem(KEY, JSON.stringify(data));
 }
 
-// local dev/guest keypair
-export function signIn() {
-  session.identity = newIdentity();
+// local keypair: mint fresh, or restore from a pasted secret key (throws on
+// an invalid key). Restoring the same key anywhere IS the same identity.
+export function signIn(privateKeyHex = null) {
+  session.identity = privateKeyHex ? identityFromPrivateHex(privateKeyHex) : newIdentity();
   session.kind = 'local';
   session.handle = null;
   persist();

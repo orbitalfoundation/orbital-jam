@@ -24,7 +24,8 @@ async function sha256(message) {
   return new Uint8Array(digest);
 }
 
-export function identityFromPrivateHex(privateKey) {
+export function identityFromPrivateHex(raw) {
+  const privateKey = String(raw).trim().replace(/^0x/i, ''); // web3auth and wallets vary on the 0x prefix
   const point = secp256k1.getPublicKey(privateKey, false); // uncompressed, 65 bytes
   return {
     privateKey,
