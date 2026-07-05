@@ -83,6 +83,7 @@ main {
 .crumbs .sep { padding: 0 0.3rem; }
 
 .head { margin-bottom: 1.5rem; }
+.head .banner { width: 100%; max-height: 13rem; object-fit: cover; display: block; margin-bottom: 1rem; }
 .head .desc { color: var(--color-dim); max-width: 46rem; }
 .head .meta { color: var(--color-dim); font-size: 0.9rem; margin-top: 0.25rem; }
 
@@ -155,6 +156,29 @@ main {
 .msg .who { font-size: 0.75rem; color: var(--color-dim); padding: 0 0.2rem; }
 .msg .who .plain { background: none; padding: 0; font-size: inherit; color: inherit; }
 .msg .who .plain:hover { color: var(--color-accent); }
+
+/* --- edit pane --- */
+.editor {
+  background: var(--color-soft);
+  padding: 1.25rem;
+  margin: 0 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 40rem;
+}
+.editor label { display: flex; flex-direction: column; gap: 0.25rem; color: var(--color-dim); font-size: 0.9rem; }
+.editor input, .editor textarea, .editor select { background: var(--color-bg); padding: 0.5rem 0.7rem; color: var(--color-fg); resize: vertical; }
+.editor .row { display: flex; gap: 0.5rem; align-items: center; }
+.editor .row input { flex: 1; }
+.editor button { padding: 0.4rem 0.75rem; color: var(--color-dim); background: var(--color-bg); }
+.editor button:hover, .editor button.primary { color: var(--color-fg); }
+.editor button.primary { font-weight: 700; }
+.editor .thumbs { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.editor .thumbs img { width: 7rem; height: 4.5rem; object-fit: cover; cursor: pointer; opacity: 0.85; }
+.editor .thumbs img:hover { opacity: 1; }
+.editor .thumbs img.sel { outline: 3px solid var(--color-accent); opacity: 1; }
+.editor .meta { color: var(--color-dim); font-size: 0.85rem; }
 
 /* --- profile --- */
 .profsection { margin: 2rem 0; }

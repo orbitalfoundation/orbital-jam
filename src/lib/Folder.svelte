@@ -4,8 +4,13 @@
   import { command } from './bus.js';
   import { labelOf, basename } from './views.js';
   import { shortKey } from './identity.js';
+  import { bestDepiction, depictionFields } from './depiction.js';
+  import EditPane from './EditPane.svelte';
 
   let { slug, entity, kids, onrefresh } = $props();
+
+  let editing = $state(false);
+  $effect(() => { slug; editing = false; }); // navigating away closes the pane
 
   const segs = $derived(slug.split('/').filter(Boolean));
   const crumbs = $derived(segs.map((s, i) => ({ label: s, path: '/' + segs.slice(0, i + 1).join('/') })));
@@ -20,28 +25,34 @@
     else onrefresh?.();
   }
 
-  function mkdir() {
+  // creation dresses itself: a best-guess unsplash depiction from the name
+  // (fails soft to plain when the server has no key). Revision is the edit pane.
+  async function mkdir() {
     const name = prompt('folder name:');
     if (!name) return;
-    act('create', { slug: childSlug(name.trim().toLowerCase()) }, 'create');
+    const label = name.trim();
+    const pic = await bestDepiction(label);
+    act('create', { slug: childSlug(label.toLowerCase()), components: { about: { label, ...depictionFields(pic) } } }, 'create');
   }
 
-  function addNote() {
+  async function addNote() {
     const label = prompt('note title:');
     if (!label) return;
     const description = prompt('note text:') ?? '';
     const name = label.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^[^a-z0-9]+/, '');
     if (!name) return alert('need a name that starts with a letter or digit');
-    act('create', { slug: childSlug(name), components: { about: { label, description } } }, 'note');
+    const pic = await bestDepiction(`${label} ${description}`.trim());
+    act('create', { slug: childSlug(name), components: { about: { label, description, ...depictionFields(pic) } } }, 'note');
   }
 
-  function addLink() {
+  async function addLink() {
     const href = prompt('url:');
     if (!href) return;
     const label = prompt('label:', href.replace(/^https?:\/\//, '').slice(0, 40)) ?? href;
     const name = label.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^[^a-z0-9]+/, '');
     if (!name) return alert('need a name that starts with a letter or digit');
-    act('create', { slug: childSlug(name), components: { about: { label }, link: { href } } }, 'link');
+    const pic = await bestDepiction(label);
+    act('create', { slug: childSlug(name), components: { about: { label, ...depictionFields(pic) }, link: { href } } }, 'link');
   }
 
   function invite() {
@@ -83,6 +94,9 @@
 {/if}
 
 <header class="head">
+  {#if entity?.components?.about?.depiction}
+    <img class="banner" src={entity.components.about.depiction} alt="" title={entity.components.about.credit ? `photo: ${entity.components.about.credit}` : ''} />
+  {/if}
   <h1>
     {isHome ? (entity ? labelOf(entity, slug) : 'orbital jam') : labelOf(entity, slug)}
     {#if entity?.policy && entity.policy !== 'public'}<span class="badge" class:hot={entity.policy === 'private'}>{entity.policy}</span>{/if}
@@ -101,6 +115,7 @@
     <button class="primary" onclick={addNote}>+ note</button>
     <button class="primary" onclick={addLink}>+ link</button>
     <button onclick={invite}>invite…</button>
+    <button onclick={() => (editing = !editing)}>{editing ? 'close edit' : 'edit…'}</button>
     {#if mine}
       <select onchange={setPolicy}>
         <option value="">privacy…</option>
@@ -112,6 +127,10 @@
       <button onclick={() => del(slug)}>delete</button>
     {/if}
   </div>
+{/if}
+
+{#if editing && entity}
+  <EditPane node={entity} onclose={() => (editing = false)} onsaved={onrefresh} />
 {/if}
 
 {#if kids.length}
